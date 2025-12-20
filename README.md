@@ -34,7 +34,7 @@ ShardJS supports basic arithmetic, variables, and expression evaluation through 
 make
 
 # run a script
-./shardjs script.js
+./bin/shardjs script.js
 ```
 
 ## Example Script
