@@ -924,6 +924,209 @@ void test_interpret_complex_comparison_expressions() {
     printf("Complex comparison expressions test passed\n");
 }
 
+void test_interpret_comparison_error_propagation() {
+    printf("Testing comparison error propagation...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test comparison with undefined variable on left side
+    ASTNode *undefined_left = ast_create_identifier("undefined_var");
+    ASTNode *five = ast_create_number(5.0);
+    ASTNode *gt_node = ast_create_binary_op(undefined_left, '>', five);
+    
+    interpret(gt_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: undefined_var") != NULL);
+    
+    ast_destroy(gt_node);
+    interpreter_clear_error();
+    
+    // Test comparison with undefined variable on right side
+    ASTNode *ten = ast_create_number(10.0);
+    ASTNode *undefined_right = ast_create_identifier("undefined_var2");
+    ASTNode *lt_node = ast_create_binary_op(ten, '<', undefined_right);
+    
+    interpret(lt_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: undefined_var2") != NULL);
+    
+    ast_destroy(lt_node);
+    interpreter_clear_error();
+    
+    // Test comparison with division by zero on left side
+    ASTNode *five2 = ast_create_number(5.0);
+    ASTNode *zero = ast_create_number(0.0);
+    ASTNode *three = ast_create_number(3.0);
+    ASTNode *div_node = ast_create_binary_op(five2, '/', zero);
+    ASTNode *ge_node = ast_create_binary_op(div_node, 'G', three);
+    
+    interpret(ge_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Division by zero") != NULL);
+    
+    ast_destroy(ge_node);
+    interpreter_clear_error();
+    
+    // Test comparison with division by zero on right side
+    ASTNode *seven = ast_create_number(7.0);
+    ASTNode *eight = ast_create_number(8.0);
+    ASTNode *zero2 = ast_create_number(0.0);
+    ASTNode *div_node2 = ast_create_binary_op(eight, '/', zero2);
+    ASTNode *le_node = ast_create_binary_op(seven, 'L', div_node2);
+    
+    interpret(le_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Division by zero") != NULL);
+    
+    ast_destroy(le_node);
+    interpreter_clear_error();
+    
+    // Test complex expression with error in comparison subexpression
+    ASTNode *two = ast_create_number(2.0);
+    ASTNode *undefined_var = ast_create_identifier("missing_var");
+    ASTNode *four = ast_create_number(4.0);
+    ASTNode *add_node = ast_create_binary_op(two, '+', undefined_var);
+    ASTNode *eq_node = ast_create_binary_op(add_node, 'E', four);
+    
+    interpret(eq_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: missing_var") != NULL);
+    
+    ast_destroy(eq_node);
+    interpreter_clear_error();
+    
+    env_destroy(env);
+    printf("Comparison error propagation test passed\n");
+}
+
+void test_interpret_comparison_with_print_errors() {
+    printf("Testing comparison errors in print statements...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test print with comparison containing undefined variable
+    ASTNode *undefined_var = ast_create_identifier("nonexistent");
+    ASTNode *five = ast_create_number(5.0);
+    ASTNode *ne_node = ast_create_binary_op(undefined_var, 'N', five);
+    ASTNode *print_node = ast_create_print_call(ne_node);
+    
+    interpret(print_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: nonexistent") != NULL);
+    
+    ast_destroy(print_node);
+    interpreter_clear_error();
+    
+    // Test print with comparison containing division by zero
+    ASTNode *ten = ast_create_number(10.0);
+    ASTNode *zero = ast_create_number(0.0);
+    ASTNode *three = ast_create_number(3.0);
+    ASTNode *div_node = ast_create_binary_op(ten, '/', zero);
+    ASTNode *gt_node = ast_create_binary_op(div_node, '>', three);
+    ASTNode *print_node2 = ast_create_print_call(gt_node);
+    
+    interpret(print_node2, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Division by zero") != NULL);
+    
+    ast_destroy(print_node2);
+    interpreter_clear_error();
+    
+    env_destroy(env);
+    printf("Comparison errors in print statements test passed\n");
+}
+
+void test_interpret_comparison_let_declaration_errors() {
+    printf("Testing comparison errors in let declarations...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test let declaration with comparison containing undefined variable
+    ASTNode *undefined_var = ast_create_identifier("unknown_var");
+    ASTNode *seven = ast_create_number(7.0);
+    ASTNode *lt_node = ast_create_binary_op(undefined_var, '<', seven);
+    ASTNode *let_node = ast_create_let_decl("result", lt_node);
+    
+    interpret(let_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: unknown_var") != NULL);
+    
+    // Verify the variable was not stored due to error
+    double value;
+    assert(!env_get(env, "result", &value));
+    
+    ast_destroy(let_node);
+    interpreter_clear_error();
+    
+    // Test let declaration with comparison containing arithmetic error
+    ASTNode *six = ast_create_number(6.0);
+    ASTNode *zero = ast_create_number(0.0);
+    ASTNode *four = ast_create_number(4.0);
+    ASTNode *div_node = ast_create_binary_op(six, '/', zero);
+    ASTNode *ge_node = ast_create_binary_op(div_node, 'G', four);
+    ASTNode *let_node2 = ast_create_let_decl("comparison_result", ge_node);
+    
+    interpret(let_node2, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Division by zero") != NULL);
+    
+    // Verify the variable was not stored due to error
+    assert(!env_get(env, "comparison_result", &value));
+    
+    ast_destroy(let_node2);
+    interpreter_clear_error();
+    
+    env_destroy(env);
+    printf("Comparison errors in let declarations test passed\n");
+}
+
+void test_interpret_nested_comparison_errors() {
+    printf("Testing nested comparison expression errors...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test deeply nested expression with error: ((5 + undefined_var) > 3) == 1
+    ASTNode *five = ast_create_number(5.0);
+    ASTNode *undefined_var = ast_create_identifier("deep_undefined");
+    ASTNode *three = ast_create_number(3.0);
+    ASTNode *one = ast_create_number(1.0);
+    
+    ASTNode *add_node = ast_create_binary_op(five, '+', undefined_var);
+    ASTNode *gt_node = ast_create_binary_op(add_node, '>', three);
+    ASTNode *eq_node = ast_create_binary_op(gt_node, 'E', one);
+    
+    interpret(eq_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: deep_undefined") != NULL);
+    
+    ast_destroy(eq_node);
+    interpreter_clear_error();
+    
+    // Test comparison chain with error: (5 > undefined_var) != (3 < 4)
+    ASTNode *five2 = ast_create_number(5.0);
+    ASTNode *undefined_var2 = ast_create_identifier("chain_undefined");
+    ASTNode *three2 = ast_create_number(3.0);
+    ASTNode *four = ast_create_number(4.0);
+    
+    ASTNode *gt_node2 = ast_create_binary_op(five2, '>', undefined_var2);
+    ASTNode *lt_node = ast_create_binary_op(three2, '<', four);
+    ASTNode *ne_node = ast_create_binary_op(gt_node2, 'N', lt_node);
+    
+    interpret(ne_node, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: chain_undefined") != NULL);
+    
+    ast_destroy(ne_node);
+    interpreter_clear_error();
+    
+    env_destroy(env);
+    printf("Nested comparison expression errors test passed\n");
+}
+
 void test_interpreter_comprehensive_scenario() {
     printf("Testing comprehensive interpreter scenario...\n");
     
@@ -1027,6 +1230,14 @@ int main() {
     test_interpreter_let_with_error();
     test_interpreter_error_recovery();
     test_interpreter_unknown_operator();
+    
+    printf("\nRunning comparison operator error handling tests...\n\n");
+    
+    test_interpret_comparison_error_propagation();
+    test_interpret_comparison_with_print_errors();
+    test_interpret_comparison_let_declaration_errors();
+    test_interpret_nested_comparison_errors();
+    
     test_interpreter_comprehensive_scenario();
     
     printf("All interpreter tests passed!\n");

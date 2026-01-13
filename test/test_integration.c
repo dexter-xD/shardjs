@@ -190,6 +190,122 @@ int main() {
         results.failed++;
     }
     
+    printf("\nComparison Operator Tests:\n");
+    printf("=========================\n\n");
+    
+    // test 9: basic comparison operators
+    if (run_test_script("print(1 < 2);", "1\n", "Less than - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(3 > 5);", "0\n", "Greater than - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(2 <= 2);", "1\n", "Less than or equal - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(5 >= 3);", "1\n", "Greater than or equal - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(5 == 5);", "1\n", "Equal - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(5 != 5);", "0\n", "Not equal - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 10: complex comparison expressions
+    if (run_test_script("print((5 + 5) >= 10);", "1\n", "Complex expression - (5 + 5) >= 10")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print((2 + 3) == 5);", "1\n", "Complex expression - (2 + 3) == 5")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print((3 * 2) != (4 + 2));", "0\n", "Complex expression - (3 * 2) != (4 + 2)")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(5 + 3 > 2 * 4);", "0\n", "Precedence test - 5 + 3 > 2 * 4")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 11: variable comparisons
+    if (run_test_script("let x = 5;\nprint(x > 3);", "1\n", "Variable comparison - x > 3")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 10;\nlet y = 5;\nprint(x >= y);", "1\n", "Two variable comparison - x >= y")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 7;\nlet y = 3;\nprint((x + y) == 10);", "1\n", "Variable arithmetic comparison - (x + y) == 10")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 12: mixed arithmetic-comparison expressions
+    if (run_test_script("let x = 4;\nprint(x * 2 > x + 3);", "1\n", "Mixed expression - x * 2 > x + 3")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 2;\nlet b = 3;\nprint((a + b) * 2 <= 10);", "1\n", "Complex mixed expression - (a + b) * 2 <= 10")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print((5 + 5) >= (2 * 5));", "1\n", "Parenthesized comparison - (5 + 5) >= (2 * 5)")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 13: floating point comparisons
+    if (run_test_script("print(3.14 > 3);", "1\n", "Floating point comparison - 3.14 > 3")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("print(5.0 == 5);", "1\n", "Float-int equality - 5.0 == 5")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
     printf("\nError Condition Tests:\n");
     printf("=====================\n\n");
     
@@ -213,6 +329,52 @@ int main() {
     }
     
     if (run_error_test("print(5 / 0);", "Runtime error - division by zero")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    printf("\nComparison Operator Error Tests:\n");
+    printf("===============================\n\n");
+    
+    // test comparison operator error conditions
+    if (run_error_test("print(undefined_var > 5);", "Runtime error - undefined variable in comparison")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("print((5 / 0) >= 3);", "Runtime error - division by zero in comparison")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("let x = (unknown_var < 10);", "Runtime error - undefined variable in let with comparison")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("print((5 + undefined_var) == 10);", "Runtime error - undefined variable in complex comparison")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("let result = (10 / 0) != 5;", "Runtime error - division by zero in comparison assignment")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("5 >=;", "Syntax error - incomplete comparison expression")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("print(5 > );", "Syntax error - missing right operand in comparison")) {
         results.passed++;
     } else {
         results.failed++;

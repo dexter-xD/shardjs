@@ -468,6 +468,131 @@ void test_comparison_operators() {
     printf("Comparison operator tokenization tests passed\n");
 }
 
+// test comparison operator error handling
+void test_comparison_operator_errors() {
+    printf("Testing comparison operator error handling...\n");
+    
+    // Test invalid sequences with comparison operators
+    Lexer *lexer = lexer_create("5 > < 3");
+    assert(lexer != NULL);
+    
+    Token token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.number == 5.0);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS);
+    assert(token.line == 1);
+    assert(token.column == 5);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.number == 3.0);
+    
+    lexer_destroy(lexer);
+    
+    // Test incomplete two-character operators at end of input
+    lexer = lexer_create("5 >");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test incomplete != at end of input
+    lexer = lexer_create("x !");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test invalid character sequences with comparison context
+    lexer = lexer_create("5 >= @ 3");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER_EQUAL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 6);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    
+    lexer_destroy(lexer);
+    
+    // Test position tracking with errors in comparison expressions
+    lexer = lexer_create("x >= y\n! z <= w");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 2);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(token.line == 2);
+    assert(token.column == 3);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS_EQUAL);
+    assert(token.line == 2);
+    assert(token.column == 5);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    free_token(&token);
+    
+    lexer_destroy(lexer);
+    
+    printf("Comparison operator error handling tests passed\n");
+}
+
 // test complete expression
 void test_complete_expression() {
     printf("Testing complete expression...\n");
@@ -502,6 +627,7 @@ int main() {
     test_identifiers();
     test_operators();
     test_comparison_operators();
+    test_comparison_operator_errors();
     test_position_tracking();
     test_error_handling();
     test_complete_expression();

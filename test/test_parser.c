@@ -324,6 +324,73 @@ void test_all_comparison_operators() {
     printf("All comparison operators test passed!\n\n");
 }
 
+// test comparison operator error handling
+void test_comparison_error_handling() {
+    printf("Testing comparison operator error handling...\n");
+    
+    // Test incomplete comparison expression
+    const char *source = "5 >";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Incomplete comparison error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test comparison with missing right operand
+    const char *source2 = "let x = 5 >=;";
+    lexer = lexer_create(source2);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Missing right operand error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test comparison in invalid context
+    const char *source3 = "let = 5 > 3;";
+    lexer = lexer_create(source3);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Invalid context error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test nested comparison error propagation
+    const char *source4 = "print((5 + ) >= 10);";
+    lexer = lexer_create(source4);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Nested comparison error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("Comparison operator error handling test passed!\n\n");
+}
+
 // test error handling
 void test_error_handling() {
     printf("Testing error handling...\n");
@@ -371,6 +438,7 @@ int main() {
     test_comparison_associativity();
     test_mixed_operators();
     test_all_comparison_operators();
+    test_comparison_error_handling();
     test_error_handling();
     
     printf("All parser tests passed!\n");
