@@ -572,6 +572,358 @@ void test_interpreter_unknown_operator() {
     printf("Unknown operator test passed\n");
 }
 
+void test_interpret_greater_than() {
+    printf("Testing greater than (>) operator...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 10 > 5 (should return 1.0)
+    ASTNode *left = ast_create_number(10.0);
+    ASTNode *right = ast_create_number(5.0);
+    ASTNode *gt_node = ast_create_binary_op(left, '>', right);
+    assert(gt_node != NULL);
+    
+    double result = interpret(gt_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(gt_node);
+    
+    // Test 3 > 5 (should return 0.0)
+    ASTNode *left2 = ast_create_number(3.0);
+    ASTNode *right2 = ast_create_number(5.0);
+    ASTNode *gt_node2 = ast_create_binary_op(left2, '>', right2);
+    
+    double result2 = interpret(gt_node2, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 0.0);
+    
+    ast_destroy(gt_node2);
+    env_destroy(env);
+    printf("Greater than test passed\n");
+}
+
+void test_interpret_less_than() {
+    printf("Testing less than (<) operator...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 3 < 5 (should return 1.0)
+    ASTNode *left = ast_create_number(3.0);
+    ASTNode *right = ast_create_number(5.0);
+    ASTNode *lt_node = ast_create_binary_op(left, '<', right);
+    assert(lt_node != NULL);
+    
+    double result = interpret(lt_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(lt_node);
+    
+    // Test 10 < 5 (should return 0.0)
+    ASTNode *left2 = ast_create_number(10.0);
+    ASTNode *right2 = ast_create_number(5.0);
+    ASTNode *lt_node2 = ast_create_binary_op(left2, '<', right2);
+    
+    double result2 = interpret(lt_node2, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 0.0);
+    
+    ast_destroy(lt_node2);
+    env_destroy(env);
+    printf("Less than test passed\n");
+}
+
+void test_interpret_greater_equal() {
+    printf("Testing greater than or equal (>=) operator...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 10 >= 5 (should return 1.0)
+    ASTNode *left = ast_create_number(10.0);
+    ASTNode *right = ast_create_number(5.0);
+    ASTNode *ge_node = ast_create_binary_op(left, 'G', right);  // 'G' represents >=
+    assert(ge_node != NULL);
+    
+    double result = interpret(ge_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(ge_node);
+    
+    // Test 5 >= 5 (should return 1.0)
+    ASTNode *left2 = ast_create_number(5.0);
+    ASTNode *right2 = ast_create_number(5.0);
+    ASTNode *ge_node2 = ast_create_binary_op(left2, 'G', right2);
+    
+    double result2 = interpret(ge_node2, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 1.0);
+    
+    ast_destroy(ge_node2);
+    
+    // Test 3 >= 5 (should return 0.0)
+    ASTNode *left3 = ast_create_number(3.0);
+    ASTNode *right3 = ast_create_number(5.0);
+    ASTNode *ge_node3 = ast_create_binary_op(left3, 'G', right3);
+    
+    double result3 = interpret(ge_node3, env);
+    assert(!interpreter_has_error());
+    assert(result3 == 0.0);
+    
+    ast_destroy(ge_node3);
+    env_destroy(env);
+    printf("Greater than or equal test passed\n");
+}
+
+void test_interpret_less_equal() {
+    printf("Testing less than or equal (<=) operator...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 3 <= 5 (should return 1.0)
+    ASTNode *left = ast_create_number(3.0);
+    ASTNode *right = ast_create_number(5.0);
+    ASTNode *le_node = ast_create_binary_op(left, 'L', right);  // 'L' represents <=
+    assert(le_node != NULL);
+    
+    double result = interpret(le_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(le_node);
+    
+    // Test 2 <= 2 (should return 1.0)
+    ASTNode *left2 = ast_create_number(2.0);
+    ASTNode *right2 = ast_create_number(2.0);
+    ASTNode *le_node2 = ast_create_binary_op(left2, 'L', right2);
+    
+    double result2 = interpret(le_node2, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 1.0);
+    
+    ast_destroy(le_node2);
+    
+    // Test 10 <= 5 (should return 0.0)
+    ASTNode *left3 = ast_create_number(10.0);
+    ASTNode *right3 = ast_create_number(5.0);
+    ASTNode *le_node3 = ast_create_binary_op(left3, 'L', right3);
+    
+    double result3 = interpret(le_node3, env);
+    assert(!interpreter_has_error());
+    assert(result3 == 0.0);
+    
+    ast_destroy(le_node3);
+    env_destroy(env);
+    printf("Less than or equal test passed\n");
+}
+
+void test_interpret_equal() {
+    printf("Testing equality (==) operator...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 5 == 5 (should return 1.0)
+    ASTNode *left = ast_create_number(5.0);
+    ASTNode *right = ast_create_number(5.0);
+    ASTNode *eq_node = ast_create_binary_op(left, 'E', right);  // 'E' represents ==
+    assert(eq_node != NULL);
+    
+    double result = interpret(eq_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(eq_node);
+    
+    // Test 3 == 4 (should return 0.0)
+    ASTNode *left2 = ast_create_number(3.0);
+    ASTNode *right2 = ast_create_number(4.0);
+    ASTNode *eq_node2 = ast_create_binary_op(left2, 'E', right2);
+    
+    double result2 = interpret(eq_node2, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 0.0);
+    
+    ast_destroy(eq_node2);
+    env_destroy(env);
+    printf("Equality test passed\n");
+}
+
+void test_interpret_not_equal() {
+    printf("Testing not equal (!=) operator...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 5 != 3 (should return 1.0)
+    ASTNode *left = ast_create_number(5.0);
+    ASTNode *right = ast_create_number(3.0);
+    ASTNode *ne_node = ast_create_binary_op(left, 'N', right);  // 'N' represents !=
+    assert(ne_node != NULL);
+    
+    double result = interpret(ne_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(ne_node);
+    
+    // Test 5 != 5 (should return 0.0)
+    ASTNode *left2 = ast_create_number(5.0);
+    ASTNode *right2 = ast_create_number(5.0);
+    ASTNode *ne_node2 = ast_create_binary_op(left2, 'N', right2);
+    
+    double result2 = interpret(ne_node2, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 0.0);
+    
+    ast_destroy(ne_node2);
+    env_destroy(env);
+    printf("Not equal test passed\n");
+}
+
+void test_interpret_floating_point_comparisons() {
+    printf("Testing floating-point comparison edge cases...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test 5.0 == 5 (should return 1.0)
+    ASTNode *left = ast_create_number(5.0);
+    ASTNode *right = ast_create_number(5.0);
+    ASTNode *eq_node = ast_create_binary_op(left, 'E', right);
+    
+    double result = interpret(eq_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(eq_node);
+    
+    // Test very small numbers
+    ASTNode *small1 = ast_create_number(0.000001);
+    ASTNode *small2 = ast_create_number(0.000002);
+    ASTNode *lt_small = ast_create_binary_op(small1, '<', small2);
+    
+    double result2 = interpret(lt_small, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 1.0);
+    
+    ast_destroy(lt_small);
+    
+    // Test very large numbers
+    ASTNode *large1 = ast_create_number(1000000.0);
+    ASTNode *large2 = ast_create_number(999999.0);
+    ASTNode *gt_large = ast_create_binary_op(large1, '>', large2);
+    
+    double result3 = interpret(gt_large, env);
+    assert(!interpreter_has_error());
+    assert(result3 == 1.0);
+    
+    ast_destroy(gt_large);
+    
+    // Test negative numbers
+    ASTNode *neg1 = ast_create_number(-5.0);
+    ASTNode *neg2 = ast_create_number(-3.0);
+    ASTNode *lt_neg = ast_create_binary_op(neg1, '<', neg2);
+    
+    double result4 = interpret(lt_neg, env);
+    assert(!interpreter_has_error());
+    assert(result4 == 1.0);  // -5 < -3 is true
+    
+    ast_destroy(lt_neg);
+    env_destroy(env);
+    printf("Floating-point comparison edge cases test passed\n");
+}
+
+void test_interpret_comparison_with_variables() {
+    printf("Testing comparison operators with variables...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Set variables x = 10, y = 5
+    assert(env_set(env, "x", 10.0));
+    assert(env_set(env, "y", 5.0));
+    
+    // Test x > y (should return 1.0)
+    ASTNode *x_node = ast_create_identifier("x");
+    ASTNode *y_node = ast_create_identifier("y");
+    ASTNode *gt_node = ast_create_binary_op(x_node, '>', y_node);
+    
+    double result = interpret(gt_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(gt_node);
+    
+    // Test y == 5 (should return 1.0)
+    ASTNode *y_node2 = ast_create_identifier("y");
+    ASTNode *five = ast_create_number(5.0);
+    ASTNode *eq_node = ast_create_binary_op(y_node2, 'E', five);
+    
+    double result2 = interpret(eq_node, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 1.0);
+    
+    ast_destroy(eq_node);
+    env_destroy(env);
+    printf("Comparison with variables test passed\n");
+}
+
+void test_interpret_complex_comparison_expressions() {
+    printf("Testing complex expressions with comparisons...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Test (5 + 5) >= 10 (should return 1.0)
+    ASTNode *five1 = ast_create_number(5.0);
+    ASTNode *five2 = ast_create_number(5.0);
+    ASTNode *ten = ast_create_number(10.0);
+    ASTNode *add_node = ast_create_binary_op(five1, '+', five2);
+    ASTNode *ge_node = ast_create_binary_op(add_node, 'G', ten);
+    
+    double result = interpret(ge_node, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(ge_node);
+    
+    // Test (2 + 3) == 5 (should return 1.0)
+    ASTNode *two = ast_create_number(2.0);
+    ASTNode *three = ast_create_number(3.0);
+    ASTNode *five3 = ast_create_number(5.0);
+    ASTNode *add_node2 = ast_create_binary_op(two, '+', three);
+    ASTNode *eq_node = ast_create_binary_op(add_node2, 'E', five3);
+    
+    double result2 = interpret(eq_node, env);
+    assert(!interpreter_has_error());
+    assert(result2 == 1.0);
+    
+    ast_destroy(eq_node);
+    
+    // Test 2 * 4 > 5 + 2 (should return 1.0, since 8 > 7)
+    ASTNode *two2 = ast_create_number(2.0);
+    ASTNode *four = ast_create_number(4.0);
+    ASTNode *five4 = ast_create_number(5.0);
+    ASTNode *two3 = ast_create_number(2.0);
+    ASTNode *mul_node = ast_create_binary_op(two2, '*', four);
+    ASTNode *add_node3 = ast_create_binary_op(five4, '+', two3);
+    ASTNode *gt_node = ast_create_binary_op(mul_node, '>', add_node3);
+    
+    double result3 = interpret(gt_node, env);
+    assert(!interpreter_has_error());
+    assert(result3 == 1.0);
+    
+    ast_destroy(gt_node);
+    env_destroy(env);
+    printf("Complex comparison expressions test passed\n");
+}
+
 void test_interpreter_comprehensive_scenario() {
     printf("Testing comprehensive interpreter scenario...\n");
     
@@ -641,6 +993,18 @@ int main() {
     test_interpret_division_by_zero();
     test_interpret_complex_expression();
     test_interpret_expression_with_variables();
+    
+    printf("\nRunning comparison operator tests...\n\n");
+    
+    test_interpret_greater_than();
+    test_interpret_less_than();
+    test_interpret_greater_equal();
+    test_interpret_less_equal();
+    test_interpret_equal();
+    test_interpret_not_equal();
+    test_interpret_floating_point_comparisons();
+    test_interpret_comparison_with_variables();
+    test_interpret_complex_comparison_expressions();
     
     printf("\nRunning variable declaration tests...\n\n");
     

@@ -74,7 +74,7 @@ double interpret(ASTNode *node, Environment *env) {
                 return 0.0;
             }
             
-            // do the math
+            // do the math or comparison
             switch (node->data.binary.operator) {
                 case '+':
                     return left_val + right_val;
@@ -88,6 +88,18 @@ double interpret(ASTNode *node, Environment *env) {
                         return 0.0;
                     }
                     return left_val / right_val;
+                case '>':
+                    return (left_val > right_val) ? 1.0 : 0.0;
+                case '<':
+                    return (left_val < right_val) ? 1.0 : 0.0;
+                case 'G':  // >= (Greater-equal)
+                    return (left_val >= right_val) ? 1.0 : 0.0;
+                case 'L':  // <= (Less-equal)
+                    return (left_val <= right_val) ? 1.0 : 0.0;
+                case 'E':  // == (Equal)
+                    return (left_val == right_val) ? 1.0 : 0.0;
+                case 'N':  // != (Not-equal)
+                    return (left_val != right_val) ? 1.0 : 0.0;
                 default:
                     {
                         char error_msg[256];
