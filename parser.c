@@ -29,6 +29,7 @@ static void parser_error(Parser *parser, const char *message);
 
 // parsing functions
 static ASTNode* parse_expression(Parser *parser);
+static ASTNode* parse_comparison(Parser *parser);
 static ASTNode* parse_term(Parser *parser);
 static ASTNode* parse_factor(Parser *parser);
 static ASTNode* parse_statement(Parser *parser);
@@ -131,8 +132,73 @@ const char* parser_get_error(Parser *parser) {
     return parser->has_error ? parser->error_message : "No error";
 }
 
-// parse + and - (lowest precedence)
+// parse comparison operators (>, <, >=, <=, ==, !=) - lowest precedence
 static ASTNode* parse_expression(Parser *parser) {
+    if (!parser || parser->has_error) {
+        return NULL;
+    }
+    
+    ASTNode *left = parse_comparison(parser);
+    if (!left || parser->has_error) {
+        return left;
+    }
+    
+    while (parser_match(parser, TOKEN_GREATER) || 
+           parser_match(parser, TOKEN_LESS) ||
+           parser_match(parser, TOKEN_GREATER_EQUAL) ||
+           parser_match(parser, TOKEN_LESS_EQUAL) ||
+           parser_match(parser, TOKEN_EQUAL) ||
+           parser_match(parser, TOKEN_NOT_EQUAL)) {
+        
+        char operator;
+        TokenType token_type = parser->current_token.type;
+        
+        // Map token types to single character operators
+        switch (token_type) {
+            case TOKEN_GREATER:
+                operator = '>';
+                break;
+            case TOKEN_LESS:
+                operator = '<';
+                break;
+            case TOKEN_GREATER_EQUAL:
+                operator = 'G'; // G for Greater-equal
+                break;
+            case TOKEN_LESS_EQUAL:
+                operator = 'L'; // L for Less-equal
+                break;
+            case TOKEN_EQUAL:
+                operator = 'E'; // E for Equal
+                break;
+            case TOKEN_NOT_EQUAL:
+                operator = 'N'; // N for Not-equal
+                break;
+            default:
+                parser_error(parser, "Invalid comparison operator");
+                ast_destroy(left);
+                return NULL;
+        }
+        
+        parser_advance(parser);
+        
+        ASTNode *right = parse_comparison(parser);
+        if (!right || parser->has_error) {
+            ast_destroy(left);
+            return NULL;
+        }
+        
+        left = ast_create_binary_op(left, operator, right);
+        if (!left) {
+            parser_error(parser, "Failed to create comparison operation node");
+            return NULL;
+        }
+    }
+    
+    return left;
+}
+
+// parse + and - (higher precedence than comparison)
+static ASTNode* parse_comparison(Parser *parser) {
     if (!parser || parser->has_error) {
         return NULL;
     }

@@ -141,6 +141,189 @@ void test_print_call() {
     printf("Print call test passed!\n\n");
 }
 
+// test comparison operator precedence
+void test_comparison_precedence() {
+    printf("Testing comparison operator precedence...\n");
+    
+    // Test that "5 + 3 > 2 * 4" parses as "(5 + 3) > (2 * 4)"
+    const char *source = "5 + 3 > 2 * 4";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    
+    ASTNode *expr = ast->data.program.statements[0];
+    assert(expr->type == AST_BINARY_OP);
+    assert(expr->data.binary.operator == '>');
+    
+    // Left side should be "5 + 3"
+    ASTNode *left = expr->data.binary.left;
+    assert(left->type == AST_BINARY_OP);
+    assert(left->data.binary.operator == '+');
+    assert(left->data.binary.left->type == AST_NUMBER);
+    assert(left->data.binary.left->data.number == 5.0);
+    assert(left->data.binary.right->type == AST_NUMBER);
+    assert(left->data.binary.right->data.number == 3.0);
+    
+    // Right side should be "2 * 4"
+    ASTNode *right = expr->data.binary.right;
+    assert(right->type == AST_BINARY_OP);
+    assert(right->data.binary.operator == '*');
+    assert(right->data.binary.left->type == AST_NUMBER);
+    assert(right->data.binary.left->data.number == 2.0);
+    assert(right->data.binary.right->type == AST_NUMBER);
+    assert(right->data.binary.right->data.number == 4.0);
+    
+    printf("Precedence test AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("Comparison precedence test passed!\n\n");
+}
+
+// test comparison operator associativity
+void test_comparison_associativity() {
+    printf("Testing comparison operator associativity...\n");
+    
+    // Test that "1 < 2 < 3" parses as "(1 < 2) < 3" (left-to-right)
+    const char *source = "1 < 2 < 3";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    
+    ASTNode *expr = ast->data.program.statements[0];
+    assert(expr->type == AST_BINARY_OP);
+    assert(expr->data.binary.operator == '<');
+    
+    // Left side should be "(1 < 2)"
+    ASTNode *left = expr->data.binary.left;
+    assert(left->type == AST_BINARY_OP);
+    assert(left->data.binary.operator == '<');
+    assert(left->data.binary.left->type == AST_NUMBER);
+    assert(left->data.binary.left->data.number == 1.0);
+    assert(left->data.binary.right->type == AST_NUMBER);
+    assert(left->data.binary.right->data.number == 2.0);
+    
+    // Right side should be "3"
+    ASTNode *right = expr->data.binary.right;
+    assert(right->type == AST_NUMBER);
+    assert(right->data.number == 3.0);
+    
+    printf("Associativity test AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("Comparison associativity test passed!\n\n");
+}
+
+// test mixed arithmetic and comparison operators
+void test_mixed_operators() {
+    printf("Testing mixed arithmetic and comparison operators...\n");
+    
+    // Test that "10 - 5 >= 2 + 3" parses as "(10 - 5) >= (2 + 3)"
+    const char *source = "10 - 5 >= 2 + 3";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    
+    ASTNode *expr = ast->data.program.statements[0];
+    assert(expr->type == AST_BINARY_OP);
+    assert(expr->data.binary.operator == 'G'); // >= encoded as 'G'
+    
+    // Left side should be "10 - 5"
+    ASTNode *left = expr->data.binary.left;
+    assert(left->type == AST_BINARY_OP);
+    assert(left->data.binary.operator == '-');
+    
+    // Right side should be "2 + 3"
+    ASTNode *right = expr->data.binary.right;
+    assert(right->type == AST_BINARY_OP);
+    assert(right->data.binary.operator == '+');
+    
+    printf("Mixed operators test AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("Mixed operators test passed!\n\n");
+}
+
+// test all comparison operators
+void test_all_comparison_operators() {
+    printf("Testing all comparison operators...\n");
+    
+    const char *operators[] = {">", "<", ">=", "<=", "==", "!="};
+    const char expected_chars[] = {'>', '<', 'G', 'L', 'E', 'N'};
+    
+    for (int i = 0; i < 6; i++) {
+        char source[20];
+        snprintf(source, sizeof(source), "5 %s 3", operators[i]);
+        
+        Lexer *lexer = lexer_create(source);
+        Parser *parser = parser_create(lexer);
+        
+        ASTNode *ast = parser_parse(parser);
+        
+        if (parser_has_error(parser)) {
+            printf("Parser error for %s: %s\n", operators[i], parser_get_error(parser));
+            assert(0);
+        }
+        
+        assert(ast != NULL);
+        assert(ast->type == AST_PROGRAM);
+        assert(ast->data.program.count == 1);
+        
+        ASTNode *expr = ast->data.program.statements[0];
+        assert(expr->type == AST_BINARY_OP);
+        assert(expr->data.binary.operator == expected_chars[i]);
+        
+        printf("Operator %s parsed correctly as '%c'\n", operators[i], expected_chars[i]);
+        
+        ast_destroy(ast);
+        parser_destroy(parser);
+        lexer_destroy(lexer);
+    }
+    
+    printf("All comparison operators test passed!\n\n");
+}
+
 // test error handling
 void test_error_handling() {
     printf("Testing error handling...\n");
@@ -184,6 +367,10 @@ int main() {
     test_expression_parsing();
     test_let_declaration();
     test_print_call();
+    test_comparison_precedence();
+    test_comparison_associativity();
+    test_mixed_operators();
+    test_all_comparison_operators();
     test_error_handling();
     
     printf("All parser tests passed!\n");
