@@ -25,6 +25,7 @@ ShardJS supports basic arithmetic, variables, and expression evaluation through 
 - **Variables**: `let` declarations with assignment
 - **Arithmetic Operators**: `+`, `-`, `*`, `/` with proper precedence
 - **Comparison Operators**: `>`, `<`, `>=`, `<=`, `==`, `!=` returning boolean values (1 for true, 0 for false)
+- **Control Flow**: `if` and `if-else` statements for conditional execution
 - **Parentheses**: Expression grouping support
 - **Print function**: Built-in `print()` for output
 
@@ -51,6 +52,14 @@ print(x > y);        // outputs: 1 (true)
 print(x == 10);      // outputs: 1 (true)
 print(y != 3);       // outputs: 1 (true)
 print((x + y) >= 15); // outputs: 1 (true)
+
+// Control flow with if/else
+if (x > y) print(42);           // outputs: 42
+if (y > x) print(1) else print(2); // outputs: 2
+
+// Conditional variable declarations
+if (x == 10) let message = 100;
+if (message == 100) print(message); // outputs: 100
 ```
 
 ## Architecture
@@ -87,9 +96,10 @@ shardjs/
 
 ```
 program     → statement*
-statement   → letDecl | printCall
+statement   → letDecl | printCall | ifStmt | expression
 letDecl     → "let" IDENTIFIER "=" expression ";"
 printCall   → "print" "(" expression ")" ";"
+ifStmt      → "if" "(" expression ")" statement ( "else" statement )?
 expression  → comparison
 comparison  → term ( ( ">" | "<" | ">=" | "<=" | "==" | "!=" ) term )*
 term        → factor ( ( "*" | "/" ) factor )*
@@ -109,6 +119,18 @@ Comparison operators return numeric boolean values:
 - `0.0` represents `false`
 
 This allows boolean results to be used in arithmetic expressions and stored in variables.
+
+### Control Flow
+If statements evaluate conditions using the same boolean logic:
+- Non-zero values (including `1.0`) are treated as `true`
+- Zero (`0.0`) is treated as `false`
+
+```javascript
+if (1) print(42);        // executes: 1 is true
+if (0) print(42);        // skips: 0 is false
+if (5 > 3) print(42);    // executes: comparison returns 1 (true)
+if (2 == 3) print(42) else print(99); // executes else: comparison returns 0 (false)
+```
 
 ## Memory Management
 
