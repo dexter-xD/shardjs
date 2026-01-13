@@ -35,6 +35,7 @@ static ASTNode* parse_factor(Parser *parser);
 static ASTNode* parse_statement(Parser *parser);
 static ASTNode* parse_let_declaration(Parser *parser);
 static ASTNode* parse_print_call(Parser *parser);
+static ASTNode* parse_if_statement(Parser *parser);
 
 // create parser with lexer
 Parser* parser_create(Lexer *lexer) {
@@ -348,6 +349,10 @@ static ASTNode* parse_statement(Parser *parser) {
         return parse_let_declaration(parser);
     }
     
+    if (parser_match(parser, TOKEN_IF)) {
+        return parse_if_statement(parser);
+    }
+    
     // check for print function call
     if (parser_match(parser, TOKEN_IDENTIFIER) && 
         parser->current_token.text && 
@@ -466,4 +471,66 @@ static ASTNode* parse_print_call(Parser *parser) {
     }
     
     return print_node;
+}
+
+// parse: if (condition) statement [else statement]
+static ASTNode* parse_if_statement(Parser *parser) {
+    if (!parser || parser->has_error) {
+        return NULL;
+    }
+    
+    // consume 'if'
+    if (!parser_consume(parser, TOKEN_IF, "Expected 'if' keyword")) {
+        return NULL;
+    }
+    
+    // consume '('
+    if (!parser_consume(parser, TOKEN_LPAREN, "Expected '(' after 'if'")) {
+        return NULL;
+    }
+    
+    // parse condition expression
+    ASTNode *condition = parse_expression(parser);
+    if (!condition || parser->has_error) {
+        return NULL;
+    }
+    
+    // consume ')'
+    if (!parser_consume(parser, TOKEN_RPAREN, "Expected ')' after if condition")) {
+        ast_destroy(condition);
+        return NULL;
+    }
+    
+    // parse if branch statement
+    ASTNode *if_branch = parse_statement(parser);
+    if (!if_branch || parser->has_error) {
+        ast_destroy(condition);
+        return NULL;
+    }
+    
+    // check for optional else clause
+    ASTNode *else_branch = NULL;
+    if (parser_match(parser, TOKEN_ELSE)) {
+        parser_advance(parser); // consume 'else'
+        
+        else_branch = parse_statement(parser);
+        if (!else_branch || parser->has_error) {
+            ast_destroy(condition);
+            ast_destroy(if_branch);
+            return NULL;
+        }
+    }
+    
+    ASTNode *if_node = ast_create_if_stmt(condition, if_branch, else_branch);
+    if (!if_node) {
+        parser_error(parser, "Failed to create if statement node");
+        ast_destroy(condition);
+        ast_destroy(if_branch);
+        if (else_branch) {
+            ast_destroy(else_branch);
+        }
+        return NULL;
+    }
+    
+    return if_node;
 }

@@ -46,6 +46,17 @@ void print_ast(ASTNode *node, int indent) {
                 print_ast(node->data.program.statements[i], indent + 4);
             }
             break;
+        case AST_IF_STMT:
+            printf("%*sIF_STMT:\n", indent, "");
+            printf("%*sCondition:\n", indent + 2, "");
+            print_ast(node->data.if_stmt.condition, indent + 4);
+            printf("%*sIf branch:\n", indent + 2, "");
+            print_ast(node->data.if_stmt.if_branch, indent + 4);
+            if (node->data.if_stmt.else_branch) {
+                printf("%*sElse branch:\n", indent + 2, "");
+                print_ast(node->data.if_stmt.else_branch, indent + 4);
+            }
+            break;
     }
 }
 
@@ -428,6 +439,265 @@ void test_error_handling() {
     printf("Error handling test passed!\n\n");
 }
 
+// test parsing simple if statement
+void test_simple_if_statement() {
+    printf("Testing simple if statement parsing...\n");
+    
+    const char *source = "if (1) print(42);";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    assert(ast->data.program.statements[0]->type == AST_IF_STMT);
+    
+    ASTNode *if_stmt = ast->data.program.statements[0];
+    assert(if_stmt->data.if_stmt.condition != NULL);
+    assert(if_stmt->data.if_stmt.condition->type == AST_NUMBER);
+    assert(if_stmt->data.if_stmt.condition->data.number == 1.0);
+    assert(if_stmt->data.if_stmt.if_branch != NULL);
+    assert(if_stmt->data.if_stmt.if_branch->type == AST_PRINT_CALL);
+    assert(if_stmt->data.if_stmt.else_branch == NULL);
+    
+    printf("Simple if statement AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("Simple if statement test passed!\n\n");
+}
+
+// test parsing if-else statement
+void test_if_else_statement() {
+    printf("Testing if-else statement parsing...\n");
+    
+    const char *source = "if (0) print(1) else print(2);";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    assert(ast->data.program.statements[0]->type == AST_IF_STMT);
+    
+    ASTNode *if_stmt = ast->data.program.statements[0];
+    assert(if_stmt->data.if_stmt.condition != NULL);
+    assert(if_stmt->data.if_stmt.condition->type == AST_NUMBER);
+    assert(if_stmt->data.if_stmt.condition->data.number == 0.0);
+    assert(if_stmt->data.if_stmt.if_branch != NULL);
+    assert(if_stmt->data.if_stmt.if_branch->type == AST_PRINT_CALL);
+    assert(if_stmt->data.if_stmt.else_branch != NULL);
+    assert(if_stmt->data.if_stmt.else_branch->type == AST_PRINT_CALL);
+    
+    printf("If-else statement AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("If-else statement test passed!\n\n");
+}
+
+// test parsing if statement with variable condition
+void test_if_with_variable_condition() {
+    printf("Testing if statement with variable condition...\n");
+    
+    const char *source = "if (a > 5) print(1);";
+    Lexer *lexer = lexer_create(source);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    assert(ast->data.program.statements[0]->type == AST_IF_STMT);
+    
+    ASTNode *if_stmt = ast->data.program.statements[0];
+    assert(if_stmt->data.if_stmt.condition != NULL);
+    assert(if_stmt->data.if_stmt.condition->type == AST_BINARY_OP);
+    assert(if_stmt->data.if_stmt.condition->data.binary.operator == '>');
+    assert(if_stmt->data.if_stmt.if_branch != NULL);
+    assert(if_stmt->data.if_stmt.if_branch->type == AST_PRINT_CALL);
+    assert(if_stmt->data.if_stmt.else_branch == NULL);
+    
+    printf("If with variable condition AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("If with variable condition test passed!\n\n");
+}
+
+// test parsing if statement with different statement types
+void test_if_with_different_statements() {
+    printf("Testing if statement with different statement types...\n");
+    
+    // Test if with let declaration
+    const char *source1 = "if (1) let x = 42;";
+    Lexer *lexer = lexer_create(source1);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    assert(ast->data.program.statements[0]->type == AST_IF_STMT);
+    
+    ASTNode *if_stmt = ast->data.program.statements[0];
+    assert(if_stmt->data.if_stmt.if_branch->type == AST_LET_DECL);
+    
+    printf("If with let declaration AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test if with expression statement
+    const char *source2 = "if (0) x + 5 else y * 2;";
+    lexer = lexer_create(source2);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    if (parser_has_error(parser)) {
+        printf("Parser error: %s\n", parser_get_error(parser));
+        assert(0);
+    }
+    
+    assert(ast != NULL);
+    assert(ast->type == AST_PROGRAM);
+    assert(ast->data.program.count == 1);
+    assert(ast->data.program.statements[0]->type == AST_IF_STMT);
+    
+    if_stmt = ast->data.program.statements[0];
+    assert(if_stmt->data.if_stmt.if_branch->type == AST_BINARY_OP);
+    assert(if_stmt->data.if_stmt.else_branch->type == AST_BINARY_OP);
+    
+    printf("If with expression statements AST:\n");
+    print_ast(ast, 0);
+    
+    ast_destroy(ast);
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("If with different statement types test passed!\n\n");
+}
+
+// test if statement error handling
+void test_if_statement_error_handling() {
+    printf("Testing if statement error handling...\n");
+    
+    // Test missing opening parenthesis
+    const char *source1 = "if 1) print(42);";
+    Lexer *lexer = lexer_create(source1);
+    Parser *parser = parser_create(lexer);
+    
+    ASTNode *ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Missing opening parenthesis error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test missing closing parenthesis
+    const char *source2 = "if (1 print(42);";
+    lexer = lexer_create(source2);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Missing closing parenthesis error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test missing condition
+    const char *source3 = "if () print(42);";
+    lexer = lexer_create(source3);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Missing condition error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test missing if statement
+    const char *source4 = "if (1);";
+    lexer = lexer_create(source4);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Missing if statement error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    // Test missing else statement
+    const char *source5 = "if (1) print(1) else;";
+    lexer = lexer_create(source5);
+    parser = parser_create(lexer);
+    
+    ast = parser_parse(parser);
+    
+    assert(parser_has_error(parser));
+    assert(ast == NULL);
+    
+    printf("Missing else statement error: %s\n", parser_get_error(parser));
+    
+    parser_destroy(parser);
+    lexer_destroy(lexer);
+    
+    printf("If statement error handling test passed!\n\n");
+}
+
 int main() {
     printf("Running parser tests...\n\n");
     
@@ -440,6 +710,11 @@ int main() {
     test_all_comparison_operators();
     test_comparison_error_handling();
     test_error_handling();
+    test_simple_if_statement();
+    test_if_else_statement();
+    test_if_with_variable_condition();
+    test_if_with_different_statements();
+    test_if_statement_error_handling();
     
     printf("All parser tests passed!\n");
     return 0;
