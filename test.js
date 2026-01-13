@@ -28,3 +28,18 @@ print(hypotenuse);
 
 let result = (10 + 5) * 2 - 8 / 4;
 print(result);
+
+print(a > b);
+print(a < b);
+print(a >= 10);
+print(b <= 5);
+print(a == 10);
+print(b != 3);
+
+print((a + b) > 12);
+print((a * 2) == 20);
+print((b - 1) != 5);
+
+print(5 + 3 > 2 * 4);
+print((5 + 3) > (2 * 4));
+print(5 + 3 >= 2 * 4);

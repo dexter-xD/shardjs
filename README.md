@@ -23,7 +23,8 @@ ShardJS supports basic arithmetic, variables, and expression evaluation through 
 
 - **Numbers**: Double-precision floating point arithmetic
 - **Variables**: `let` declarations with assignment
-- **Operators**: `+`, `-`, `*`, `/` with proper precedence
+- **Arithmetic Operators**: `+`, `-`, `*`, `/` with proper precedence
+- **Comparison Operators**: `>`, `<`, `>=`, `<=`, `==`, `!=` returning boolean values (1 for true, 0 for false)
 - **Parentheses**: Expression grouping support
 - **Print function**: Built-in `print()` for output
 
@@ -44,6 +45,12 @@ let x = 10;
 let y = 5;
 let result = (x + y) * 2;
 print(result); // outputs: 30
+
+// Comparison operators
+print(x > y);        // outputs: 1 (true)
+print(x == 10);      // outputs: 1 (true)
+print(y != 3);       // outputs: 1 (true)
+print((x + y) >= 15); // outputs: 1 (true)
 ```
 
 ## Architecture
@@ -83,10 +90,25 @@ program     → statement*
 statement   → letDecl | printCall
 letDecl     → "let" IDENTIFIER "=" expression ";"
 printCall   → "print" "(" expression ")" ";"
-expression  → term ( ( "+" | "-" ) term )*
+expression  → comparison
+comparison  → term ( ( ">" | "<" | ">=" | "<=" | "==" | "!=" ) term )*
 term        → factor ( ( "*" | "/" ) factor )*
 factor      → NUMBER | IDENTIFIER | "(" expression ")"
 ```
+
+### Operator Precedence (highest to lowest)
+1. Parentheses `()`
+2. Numbers and identifiers
+3. Multiplication and division `*`, `/`
+4. Addition and subtraction `+`, `-`
+5. Comparison operators `>`, `<`, `>=`, `<=`, `==`, `!=`
+
+### Boolean Values
+Comparison operators return numeric boolean values:
+- `1.0` represents `true`
+- `0.0` represents `false`
+
+This allows boolean results to be used in arithmetic expressions and stored in variables.
 
 ## Memory Management
 
