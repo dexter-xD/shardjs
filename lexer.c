@@ -179,6 +179,12 @@ static Token lexer_read_identifier(Lexer *lexer) {
     if (strcmp(buffer, "let") == 0) {
         return create_token(TOKEN_LET, start_line, start_column);
     }
+    if (strcmp(buffer, "if") == 0) {
+        return create_token(TOKEN_IF, start_line, start_column);
+    }
+    if (strcmp(buffer, "else") == 0) {
+        return create_token(TOKEN_ELSE, start_line, start_column);
+    }
     
     return create_text_token(TOKEN_IDENTIFIER, buffer, start_line, start_column);
 }

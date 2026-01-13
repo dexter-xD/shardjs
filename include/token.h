@@ -12,6 +12,8 @@ typedef enum {
     TOKEN_NUMBER,
     TOKEN_IDENTIFIER,
     TOKEN_LET,
+    TOKEN_IF,
+    TOKEN_ELSE,
     TOKEN_ASSIGN,
     TOKEN_PLUS,
     TOKEN_MINUS,

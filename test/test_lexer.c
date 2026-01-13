@@ -18,6 +18,8 @@ const char* token_type_to_string(TokenType type) {
         case TOKEN_NUMBER: return "NUMBER";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_LET: return "LET";
+        case TOKEN_IF: return "IF";
+        case TOKEN_ELSE: return "ELSE";
         case TOKEN_ASSIGN: return "ASSIGN";
         case TOKEN_PLUS: return "PLUS";
         case TOKEN_MINUS: return "MINUS";
@@ -620,11 +622,199 @@ void test_complete_expression() {
     printf("Complete expression tests passed\n");
 }
 
+// test if/else keyword tokenization
+void test_if_else_keywords() {
+    printf("Testing if/else keyword tokenization...\n");
+    
+    // Test basic if keyword
+    Lexer *lexer = lexer_create("if");
+    assert(lexer != NULL);
+    
+    Token token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IF);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test basic else keyword
+    lexer = lexer_create("else");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ELSE);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test if and else together
+    lexer = lexer_create("if else");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IF);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ELSE);
+    assert(token.line == 1);
+    assert(token.column == 4);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test if/else with other keywords
+    lexer = lexer_create("let if else");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LET);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IF);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ELSE);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test if/else in context with parentheses and statements
+    lexer = lexer_create("if (x > 5) print(1) else print(0)");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IF);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LPAREN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "x") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.number == 5.0);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_RPAREN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "print") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LPAREN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.number == 1.0);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_RPAREN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ELSE);
+    assert(token.line == 1);
+    assert(token.column == 21);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "print") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LPAREN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.number == 0.0);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_RPAREN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test that identifiers starting with if/else are not keywords
+    lexer = lexer_create("ifvar elsevar ifx elsex");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "ifvar") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "elsevar") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "ifx") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "elsex") == 0);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test multiline if/else
+    lexer = lexer_create("if\nelse");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IF);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ELSE);
+    assert(token.line == 2);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    printf("If/else keyword tokenization tests passed\n");
+}
+
 int main() {
     printf("Running lexer tests...\n\n");
     
     test_numbers();
     test_identifiers();
+    test_if_else_keywords();
     test_operators();
     test_comparison_operators();
     test_comparison_operator_errors();
