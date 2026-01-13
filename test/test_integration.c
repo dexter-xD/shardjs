@@ -380,6 +380,246 @@ int main() {
         results.failed++;
     }
     
+    printf("\nIf/Else Control Flow Tests:\n");
+    printf("===========================\n\n");
+    
+    // test 14: basic if statement - true condition
+    if (run_test_script("if (1) print(42);", "42\n", "Basic if statement - true condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 15: basic if statement - false condition (no output)
+    if (run_test_script("if (0) print(42);", "", "Basic if statement - false condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 16: if-else statement - true condition
+    if (run_test_script("if (1) print(1) else print(2);", "1\n", "If-else statement - true condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 17: if-else statement - false condition
+    if (run_test_script("if (0) print(1) else print(2);", "2\n", "If-else statement - false condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 18: if with variable declaration in branch
+    if (run_test_script("if (1) let x = 5;\nprint(x);", "5\n", "If with variable declaration")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 19: if-else with variable declarations
+    if (run_test_script("if (1) let x = 10;\nif (0) let x = 20;\nprint(x);", "10\n", "If-else with variable declarations - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("if (0) let x = 10;\nif (1) let x = 20;\nprint(x);", "20\n", "If-else with variable declarations - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 20: if with variable redeclaration (since assignment isn't supported)
+    if (run_test_script("let x = 0;\nif (1) let x = 42;\nprint(x);", "42\n", "If with variable redeclaration")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 21: if-else with variable redeclarations
+    if (run_test_script("let x = 0;\nif (1) let x = 10;\nprint(x);", "10\n", "If-else with redeclarations - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 0;\nif (0) let x = 10;\nif (1) let x = 20;\nprint(x);", "20\n", "If-else with redeclarations - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 22: if with expression statements
+    if (run_test_script("let x = 5;\nif (1) x + 3;\nprint(x);", "5\n", "If with expression statement")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 23: if with comparison conditions
+    if (run_test_script("let a = 10;\nif (a > 5) print(1) else print(0);", "1\n", "If with comparison - greater than true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 3;\nif (a > 5) print(1) else print(0);", "0\n", "If with comparison - greater than false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 5;\nif (a == 5) print(1);", "1\n", "If with equality comparison - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 3;\nif (a == 5) print(1);", "", "If with equality comparison - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 24: if with arithmetic conditions
+    if (run_test_script("let x = 7;\nlet y = 3;\nif (x * y) print(1) else print(0);", "1\n", "If with arithmetic condition - non-zero")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 0;\nlet y = 5;\nif (x * y) print(1) else print(0);", "0\n", "If with arithmetic condition - zero")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 25: complex conditions with arithmetic and comparison
+    if (run_test_script("let x = 7;\nlet y = 3;\nif (x * y >= 20) print(1) else print(0);", "1\n", "Complex condition - arithmetic >= comparison true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 2;\nlet y = 3;\nif (x * y >= 20) print(1) else print(0);", "0\n", "Complex condition - arithmetic >= comparison false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 5;\nlet b = 3;\nif ((a + b) * 2 > 15) print(1) else print(0);", "1\n", "Complex condition - (a + b) * 2 > 15 true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 2;\nlet b = 1;\nif ((a + b) * 2 > 15) print(1) else print(0);", "0\n", "Complex condition - (a + b) * 2 > 15 false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 26: multiple if statements in sequence
+    if (run_test_script("let x = 10;\nif (x > 5) print(1);\nif (x < 15) print(2);", "1\n2\n", "Multiple if statements")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 27: if statements with different statement types
+    if (run_test_script("let x = 5;\nif (x > 3) let y = x * 2;\nprint(y);", "10\n", "If with let statement")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 5;\nlet y = 0;\nif (x > 3) let y = x + 10;\nprint(y);", "15\n", "If with variable redeclaration")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 28: nested expressions in conditions
+    if (run_test_script("let a = 2;\nlet b = 3;\nlet c = 4;\nif ((a + b) * c >= 20) print(1) else print(0);", "1\n", "Nested expressions in condition - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let a = 1;\nlet b = 1;\nlet c = 2;\nif ((a + b) * c >= 20) print(1) else print(0);", "0\n", "Nested expressions in condition - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 29: floating point conditions
+    if (run_test_script("let x = 3.14;\nif (x > 3) print(1) else print(0);", "1\n", "Floating point condition - true")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 2.5;\nif (x > 3) print(1) else print(0);", "0\n", "Floating point condition - false")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    // test 30: if statements with existing language features interaction
+    if (run_test_script("let x = 5;\nlet y = 3;\nif (x > y) print(x + y) else print(x - y);", "8\n", "If-else with arithmetic in branches")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_test_script("let x = 2;\nlet y = 5;\nif (x > y) print(x + y) else print(x - y);", "-3\n", "If-else with arithmetic in branches - else")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    printf("\nIf/Else Error Condition Tests:\n");
+    printf("==============================\n\n");
+    
+    // test if/else error conditions
+    if (run_error_test("if print(1);", "Syntax error - missing parentheses in if")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("if (1 print(1);", "Syntax error - missing closing parenthesis in if")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("if (1);", "Syntax error - missing statement after if condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("if (1) print(1) else;", "Syntax error - missing statement after else")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("if (undefined_var) print(1);", "Runtime error - undefined variable in if condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
+    if (run_error_test("if (5 / 0) print(1);", "Runtime error - division by zero in if condition")) {
+        results.passed++;
+    } else {
+        results.failed++;
+    }
+    
     // print results
     printf("\n=================================\n");
     printf("Test Results: %d passed, %d failed\n", results.passed, results.failed);
