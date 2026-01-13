@@ -78,6 +78,17 @@ ASTNode* ast_create_program(void) {
     return node;
 }
 
+ASTNode* ast_create_if_stmt(ASTNode *condition, ASTNode *if_branch, ASTNode *else_branch) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    if (!node) return NULL;
+    
+    node->type = AST_IF_STMT;
+    node->data.if_stmt.condition = condition;
+    node->data.if_stmt.if_branch = if_branch;
+    node->data.if_stmt.else_branch = else_branch;
+    return node;
+}
+
 // add statement to program node - grows array as needed
 int ast_program_add_statement(ASTNode *program, ASTNode *statement) {
     if (!program || program->type != AST_PROGRAM || !statement) {
@@ -125,6 +136,11 @@ void ast_destroy(ASTNode *node) {
                 ast_destroy(node->data.program.statements[i]);
             }
             free(node->data.program.statements);
+            break;
+        case AST_IF_STMT:
+            ast_destroy(node->data.if_stmt.condition);
+            ast_destroy(node->data.if_stmt.if_branch);
+            ast_destroy(node->data.if_stmt.else_branch);  // handles NULL gracefully
             break;
         case AST_NUMBER:
             // numbers don't need cleanup

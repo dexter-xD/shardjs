@@ -17,7 +17,8 @@ typedef enum {
     AST_BINARY_OP,
     AST_LET_DECL,
     AST_PRINT_CALL,
-    AST_PROGRAM
+    AST_PROGRAM,
+    AST_IF_STMT
 } ASTNodeType;
 
 // ast node structure
@@ -41,6 +42,11 @@ typedef struct ASTNode {
             int count;
             int capacity;
         } program;
+        struct {
+            struct ASTNode *condition;
+            struct ASTNode *if_branch;
+            struct ASTNode *else_branch;  // NULL if no else
+        } if_stmt;
     } data;
 } ASTNode;
 
@@ -68,6 +74,7 @@ ASTNode* ast_create_binary_op(ASTNode *left, char operator, ASTNode *right);
 ASTNode* ast_create_let_decl(const char *name, ASTNode *value);
 ASTNode* ast_create_print_call(ASTNode *arg);
 ASTNode* ast_create_program(void);
+ASTNode* ast_create_if_stmt(ASTNode *condition, ASTNode *if_branch, ASTNode *else_branch);
 int ast_program_add_statement(ASTNode *program, ASTNode *statement);
 void ast_destroy(ASTNode *node);
 

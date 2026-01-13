@@ -113,6 +113,74 @@ void test_ast_null_handling() {
     printf("NULL handling passed\n");
 }
 
+void test_ast_create_if_stmt() {
+    printf("Testing ast_create_if_stmt...\n");
+    
+    // create if statement: if (x > 5) print(1) else print(0)
+    ASTNode *condition = ast_create_binary_op(
+        ast_create_identifier("x"), 
+        '>', 
+        ast_create_number(5.0)
+    );
+    ASTNode *if_branch = ast_create_print_call(ast_create_number(1.0));
+    ASTNode *else_branch = ast_create_print_call(ast_create_number(0.0));
+    
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, else_branch);
+    
+    assert(if_stmt != NULL);
+    assert(if_stmt->type == AST_IF_STMT);
+    assert(if_stmt->data.if_stmt.condition == condition);
+    assert(if_stmt->data.if_stmt.if_branch == if_branch);
+    assert(if_stmt->data.if_stmt.else_branch == else_branch);
+    
+    ast_destroy(if_stmt);  // should recursively destroy all branches
+    printf("ast_create_if_stmt passed\n");
+}
+
+void test_ast_create_if_stmt_no_else() {
+    printf("Testing ast_create_if_stmt without else branch...\n");
+    
+    // create if statement without else: if (1) print(42)
+    ASTNode *condition = ast_create_number(1.0);
+    ASTNode *if_branch = ast_create_print_call(ast_create_number(42.0));
+    
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    
+    assert(if_stmt != NULL);
+    assert(if_stmt->type == AST_IF_STMT);
+    assert(if_stmt->data.if_stmt.condition == condition);
+    assert(if_stmt->data.if_stmt.if_branch == if_branch);
+    assert(if_stmt->data.if_stmt.else_branch == NULL);
+    
+    ast_destroy(if_stmt);  // should handle NULL else_branch gracefully
+    printf("ast_create_if_stmt without else passed\n");
+}
+
+void test_ast_if_stmt_memory_management() {
+    printf("Testing if statement memory management...\n");
+    
+    // create complex nested if statement
+    ASTNode *var_a = ast_create_identifier("a");
+    ASTNode *var_b = ast_create_identifier("b");
+    ASTNode *condition = ast_create_binary_op(var_a, '+', var_b);
+    
+    ASTNode *if_branch = ast_create_let_decl("result", ast_create_number(1.0));
+    ASTNode *else_branch = ast_create_let_decl("result", ast_create_number(0.0));
+    
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, else_branch);
+    
+    // verify structure
+    assert(if_stmt->type == AST_IF_STMT);
+    assert(if_stmt->data.if_stmt.condition->type == AST_BINARY_OP);
+    assert(if_stmt->data.if_stmt.if_branch->type == AST_LET_DECL);
+    assert(if_stmt->data.if_stmt.else_branch->type == AST_LET_DECL);
+    
+    // this should recursively free all nodes
+    ast_destroy(if_stmt);
+    
+    printf("Complex if statement memory management passed\n");
+}
+
 int main() {
     printf("Running AST tests...\n\n");
     
@@ -123,6 +191,9 @@ int main() {
     test_ast_create_print_call();
     test_ast_memory_management();
     test_ast_null_handling();
+    test_ast_create_if_stmt();
+    test_ast_create_if_stmt_no_else();
+    test_ast_if_stmt_memory_management();
     
     printf("\nAll AST tests passed!\n");
     return 0;
