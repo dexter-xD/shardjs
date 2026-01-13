@@ -1178,6 +1178,245 @@ void test_interpreter_comprehensive_scenario() {
     printf("Comprehensive scenario test passed\n");
 }
 
+void test_interpret_if_true_condition() {
+    printf("Testing if statement with true condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (1) print(42);
+    ASTNode *condition = ast_create_number(1.0);
+    ASTNode *print_arg = ast_create_number(42.0);
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: 42\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 42.0);  // should return the result of the if branch
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with true condition test passed\n");
+}
+
+void test_interpret_if_false_condition() {
+    printf("Testing if statement with false condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (0) print(42);
+    ASTNode *condition = ast_create_number(0.0);
+    ASTNode *print_arg = ast_create_number(42.0);
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: (none)\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 0.0);  // should return 0 when no else branch and condition is false
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with false condition test passed\n");
+}
+
+void test_interpret_if_else_true_condition() {
+    printf("Testing if-else statement with true condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (1) print(42) else print(99);
+    ASTNode *condition = ast_create_number(1.0);
+    ASTNode *if_print_arg = ast_create_number(42.0);
+    ASTNode *if_branch = ast_create_print_call(if_print_arg);
+    ASTNode *else_print_arg = ast_create_number(99.0);
+    ASTNode *else_branch = ast_create_print_call(else_print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, else_branch);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: 42\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 42.0);  // should execute if branch
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If-else statement with true condition test passed\n");
+}
+
+void test_interpret_if_else_false_condition() {
+    printf("Testing if-else statement with false condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (0) print(42) else print(99);
+    ASTNode *condition = ast_create_number(0.0);
+    ASTNode *if_print_arg = ast_create_number(42.0);
+    ASTNode *if_branch = ast_create_print_call(if_print_arg);
+    ASTNode *else_print_arg = ast_create_number(99.0);
+    ASTNode *else_branch = ast_create_print_call(else_print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, else_branch);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: 99\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 99.0);  // should execute else branch
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If-else statement with false condition test passed\n");
+}
+
+void test_interpret_if_with_comparison_condition() {
+    printf("Testing if statement with comparison condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (5 > 3) print(1);
+    ASTNode *left = ast_create_number(5.0);
+    ASTNode *right = ast_create_number(3.0);
+    ASTNode *condition = ast_create_binary_op(left, '>', right);
+    ASTNode *print_arg = ast_create_number(1.0);
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: 1\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 1.0);
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with comparison condition test passed\n");
+}
+
+void test_interpret_if_with_arithmetic_condition() {
+    printf("Testing if statement with arithmetic condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (2 + 3) print(5); (non-zero result should be true)
+    ASTNode *left = ast_create_number(2.0);
+    ASTNode *right = ast_create_number(3.0);
+    ASTNode *condition = ast_create_binary_op(left, '+', right);
+    ASTNode *print_arg = ast_create_number(5.0);
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: 5\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 5.0);
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with arithmetic condition test passed\n");
+}
+
+void test_interpret_if_with_variable_condition() {
+    printf("Testing if statement with variable condition...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Set variable a = 10
+    assert(env_set(env, "a", 10.0));
+    
+    // Create if (a) print(a);
+    ASTNode *condition = ast_create_identifier("a");
+    ASTNode *print_arg = ast_create_identifier("a");
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: 10\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 10.0);
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with variable condition test passed\n");
+}
+
+void test_interpret_if_null_else_branch() {
+    printf("Testing if statement with NULL else branch...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (0) print(42); (with NULL else branch)
+    ASTNode *condition = ast_create_number(0.0);
+    ASTNode *print_arg = ast_create_number(42.0);
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    printf("Expected output: (none)\nActual output: ");
+    double result = interpret(if_stmt, env);
+    assert(!interpreter_has_error());
+    assert(result == 0.0);  // should return 0 when condition is false and no else branch
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with NULL else branch test passed\n");
+}
+
+void test_interpret_if_condition_error() {
+    printf("Testing if statement with condition evaluation error...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (undefined_var) print(42);
+    ASTNode *condition = ast_create_identifier("undefined_var");
+    ASTNode *print_arg = ast_create_number(42.0);
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    interpret(if_stmt, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: undefined_var") != NULL);
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with condition error test passed\n");
+}
+
+void test_interpret_if_branch_error() {
+    printf("Testing if statement with branch execution error...\n");
+    
+    Environment *env = env_create();
+    assert(env != NULL);
+    
+    // Create if (1) print(undefined_var);
+    ASTNode *condition = ast_create_number(1.0);
+    ASTNode *print_arg = ast_create_identifier("undefined_var");
+    ASTNode *if_branch = ast_create_print_call(print_arg);
+    ASTNode *if_stmt = ast_create_if_stmt(condition, if_branch, NULL);
+    assert(if_stmt != NULL);
+    
+    interpret(if_stmt, env);
+    assert(interpreter_has_error());
+    assert(strstr(interpreter_get_error(), "Undefined variable: undefined_var") != NULL);
+    
+    ast_destroy(if_stmt);
+    env_destroy(env);
+    printf("If statement with branch error test passed\n");
+}
+
 int main() {
     printf("Running interpreter core tests...\n\n");
     
@@ -1239,6 +1478,19 @@ int main() {
     test_interpret_nested_comparison_errors();
     
     test_interpreter_comprehensive_scenario();
+    
+    printf("\nRunning if statement execution tests...\n\n");
+    
+    test_interpret_if_true_condition();
+    test_interpret_if_false_condition();
+    test_interpret_if_else_true_condition();
+    test_interpret_if_else_false_condition();
+    test_interpret_if_with_comparison_condition();
+    test_interpret_if_with_arithmetic_condition();
+    test_interpret_if_with_variable_condition();
+    test_interpret_if_null_else_branch();
+    test_interpret_if_condition_error();
+    test_interpret_if_branch_error();
     
     printf("All interpreter tests passed!\n");
     return 0;

@@ -150,6 +150,27 @@ double interpret(ASTNode *node, Environment *env) {
             return last_result;
         }
         
+        case AST_IF_STMT: {
+            // evaluate the condition
+            double condition_value = interpret(node->data.if_stmt.condition, env);
+            if (interpreter_has_error()) {
+                return 0.0;
+            }
+            
+            // non-zero is true, zero is false
+            if (condition_value != 0.0) {
+                // execute if branch
+                return interpret(node->data.if_stmt.if_branch, env);
+            } else {
+                // execute else branch if it exists
+                if (node->data.if_stmt.else_branch != NULL) {
+                    return interpret(node->data.if_stmt.else_branch, env);
+                }
+                // no else branch, return 0
+                return 0.0;
+            }
+        }
+        
         default:
             set_interpreter_error("Unsupported AST node type in interpreter core");
             return 0.0;
