@@ -208,7 +208,7 @@ Token lexer_next_token(Lexer *lexer) {
         return lexer_read_identifier(lexer);
     }
     
-    // single char tokens
+    // single char tokens and comparison operators
     char ch = lexer->current_char;
     lexer_advance(lexer);
     
@@ -222,7 +222,34 @@ Token lexer_next_token(Lexer *lexer) {
         case '/':
             return create_token(TOKEN_DIVIDE, current_line, current_column);
         case '=':
+            // check for == (equality comparison)
+            if (lexer->current_char == '=') {
+                lexer_advance(lexer);
+                return create_token(TOKEN_EQUAL, current_line, current_column);
+            }
             return create_token(TOKEN_ASSIGN, current_line, current_column);
+        case '>':
+            // check for >= (greater than or equal)
+            if (lexer->current_char == '=') {
+                lexer_advance(lexer);
+                return create_token(TOKEN_GREATER_EQUAL, current_line, current_column);
+            }
+            return create_token(TOKEN_GREATER, current_line, current_column);
+        case '<':
+            // check for <= (less than or equal)
+            if (lexer->current_char == '=') {
+                lexer_advance(lexer);
+                return create_token(TOKEN_LESS_EQUAL, current_line, current_column);
+            }
+            return create_token(TOKEN_LESS, current_line, current_column);
+        case '!':
+            // check for != (not equal)
+            if (lexer->current_char == '=') {
+                lexer_advance(lexer);
+                return create_token(TOKEN_NOT_EQUAL, current_line, current_column);
+            }
+            // standalone ! is not supported, return error
+            return create_token(TOKEN_ERROR, current_line, current_column);
         case '(':
             return create_token(TOKEN_LPAREN, current_line, current_column);
         case ')':

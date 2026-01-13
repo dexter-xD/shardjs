@@ -26,6 +26,12 @@ const char* token_type_to_string(TokenType type) {
         case TOKEN_LPAREN: return "LPAREN";
         case TOKEN_RPAREN: return "RPAREN";
         case TOKEN_SEMICOLON: return "SEMICOLON";
+        case TOKEN_GREATER: return "GREATER";
+        case TOKEN_LESS: return "LESS";
+        case TOKEN_GREATER_EQUAL: return "GREATER_EQUAL";
+        case TOKEN_LESS_EQUAL: return "LESS_EQUAL";
+        case TOKEN_EQUAL: return "EQUAL";
+        case TOKEN_NOT_EQUAL: return "NOT_EQUAL";
         case TOKEN_EOF: return "EOF";
         case TOKEN_ERROR: return "ERROR";
         default: return "UNKNOWN";
@@ -213,6 +219,255 @@ void test_error_handling() {
     printf("Error handling tests passed\n");
 }
 
+// test comparison operator tokenization
+void test_comparison_operators() {
+    printf("Testing comparison operator tokenization...\n");
+    
+    // Test single-character operators with position tracking
+    Lexer *lexer = lexer_create("> <");
+    assert(lexer != NULL);
+    
+    Token token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test two-character operators with position tracking
+    lexer = lexer_create(">= <= == !=");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 4);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 7);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NOT_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 10);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test conflict resolution: = vs ==
+    lexer = lexer_create("= == === ====");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ASSIGN);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    // Test === (should be == followed by =)
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 6);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ASSIGN);
+    assert(token.line == 1);
+    assert(token.column == 8);
+    
+    // Test ==== (should be == followed by ==)
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 10);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 12);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test edge cases with adjacent operators
+    lexer = lexer_create(">=<= >< !=== !==");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER_EQUAL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS_EQUAL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS);
+    
+    // Test !=== (should be != followed by ==)
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NOT_EQUAL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    
+    // Test !== (should be != followed by =)
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NOT_EQUAL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ASSIGN);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test error cases
+    lexer = lexer_create("! !a !1");
+    assert(lexer != NULL);
+    
+    // Standalone ! should be error
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    // !a should be error followed by identifier
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(strcmp(token.text, "a") == 0);
+    free_token(&token);
+    
+    // !1 should be error followed by number
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 6);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.number == 1.0);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    // Test operators in expressions with correct position tracking
+    lexer = lexer_create("x >= 5 && y <= 10");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER_EQUAL);
+    assert(token.line == 1);
+    assert(token.column == 3);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    assert(token.line == 1);
+    assert(token.column == 6);
+    
+    // Note: && would be tokenized as two errors since it's not implemented
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 8);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_ERROR);
+    assert(token.line == 1);
+    assert(token.column == 9);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_IDENTIFIER);
+    free_token(&token);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS_EQUAL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NUMBER);
+    
+    lexer_destroy(lexer);
+    
+    // Test multiline comparison operators
+    lexer = lexer_create(">\n<\n>=\n<=\n==\n!=");
+    assert(lexer != NULL);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER);
+    assert(token.line == 1);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS);
+    assert(token.line == 2);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_GREATER_EQUAL);
+    assert(token.line == 3);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_LESS_EQUAL);
+    assert(token.line == 4);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EQUAL);
+    assert(token.line == 5);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_NOT_EQUAL);
+    assert(token.line == 6);
+    assert(token.column == 1);
+    
+    token = lexer_next_token(lexer);
+    assert(token.type == TOKEN_EOF);
+    
+    lexer_destroy(lexer);
+    
+    printf("Comparison operator tokenization tests passed\n");
+}
+
 // test complete expression
 void test_complete_expression() {
     printf("Testing complete expression...\n");
@@ -246,6 +501,7 @@ int main() {
     test_numbers();
     test_identifiers();
     test_operators();
+    test_comparison_operators();
     test_position_tracking();
     test_error_handling();
     test_complete_expression();
